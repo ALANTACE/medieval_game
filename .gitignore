@@ -1,0 +1,14 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+
+# Executables
+*.elf
+
+# CMake build folders
+build/
+
+# IDEs
+.idea/
