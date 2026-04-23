@@ -7,9 +7,11 @@ set(CMAKE_C_STANDARD 11)
 set(SDL_SHARED ON CACHE BOOL "Build shared library")
 set(SDL_STATIC OFF CACHE BOOL "Build static library")
 set(SDL_TEST OFF CACHE BOOL "Disable SDL tests")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Add the SDL3 library
 add_subdirectory(deps/SDL)
+add_subdirectory(deps/SDL_image)
 
 # Game executable
 add_executable(game
@@ -19,9 +21,14 @@ add_executable(game
         source/renderer.h
         source/player.c
         source/player.h
+        source/fileio.c
+        source/fileio.h
         source/game.c
-        source/game.h
-        source/error.h)
+        source/macros.h
+)
 
 # Link SDL3 to the game
-target_link_libraries(game PRIVATE SDL3::SDL3-shared)
+target_link_libraries(game PRIVATE
+        SDL3::SDL3-shared
+        SDL3_image::SDL3_image-shared
+)
