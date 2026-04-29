@@ -5,8 +5,6 @@
 
 #include <stdio.h>
 
-static const float gravity = 9.81;
-
 void game_input(InputState *input) {
     SDL_Event event;
 
@@ -26,7 +24,7 @@ void game_input(InputState *input) {
 
 void game_update(const InputState input, const float delta_time) {
     // Update player velocity
-    update_player_velocity(input);    
+    update_player_velocity(input);
 
     // Update player position
     player.pos.x += player.velocity.dx * delta_time;
@@ -40,47 +38,67 @@ void game_update(const InputState input, const float delta_time) {
 /* STATIC FUNCTIONS */
 static void update_player_velocity(const InputState input)
 {
-    // Set inactivity speed to 0
-    player.speed = 0;
+    float diagonal_coefficient = 1.0f;
 
-    if ((input.move_up == true) && (input.move_right == true)) {
-        player.speed += 1.0f / 1.414f;
-    } else if ((input.move_up == true) && (input.move_left == true)) {
-        player.speed += 1.0f / 1.414f;
-    } else if ((input.move_down == true) && (input.move_right == true)) {
-        player.speed += 1.0f / 1.414f;
-    } else if ((input.move_down == true) && (input.move_left == true)) {
-        player.speed += 1.0f / 1.414f;
-    }
-    else {
-        player.speed += 1.0f;
-    }
+    // Update dx
+    if ((input.move_left) && (input.move_right) ||  // If both OR neither AD keys are pressed STOP moving
+        (!input.move_left) && (!input.move_right)) {
+        if (player.velocity.dx == 0) {
 
-    // Update player dy velocity
-    if ((input.move_up == true) && (input.move_down == true)) {
-        player.velocity.dy = 0.0f;
-    } else {
-        if (input.move_up == true) {
-            player.velocity.dy = -200.0f * player.speed; // Y position coordinates are inverted
-        } else if (input.move_down == true) {
-            player.velocity.dy = 200.0f * player.speed; // Y position coordinates are inverted
-        } else {
-            player.velocity.dy = 0.0f;
+        } else if (player.velocity.dx > 0) {
+            player.velocity.dx -= PLAYER_DECELERATION;
+            if (player.velocity.dx < 0) { player.velocity.dx = 0;}
+        } else if (player.velocity.dx < 0) {
+            player.velocity.dx += PLAYER_DECELERATION;
+            if (player.velocity.dx > 0) { player.velocity.dx = 0;}
         }
-    }
-
-    player.velocity.dy -= gravity;
-
-    // Update player dx velocity
-    if ((input.move_left == true) && (input.move_right == true)) {
-        player.velocity.dx = 0.0f;
-    } else {
-        if (input.move_left == true) {
-            player.velocity.dx = -200.0f * player.speed;
-        } else if (input.move_right == true) {
-            player.velocity.dx = 200.0f * player.speed;
-        } else {
-            player.velocity.dx = 0.0f;
+    } else if (input.move_left) { // Only the A key is pressed
+        // If the player is moving diagonally reduce speed by sqrt(2)
+        if (((input.move_up) && (!input.move_down)) || ((!input.move_up) && (input.move_down))) {
+            diagonal_coefficient = 1.414f;
         }
+
+        player.velocity.dx -= PLAYER_ACCELERATION / diagonal_coefficient;
+        if (player.velocity.dx < -200.0f / diagonal_coefficient) { player.velocity.dx = -200.0f / diagonal_coefficient; }
+    } else  { // Only the D key is pressed
+        // If the player is moving diagonally reduce speed by sqrt(2)
+        if (((input.move_up) && (!input.move_down)) || ((!input.move_up) && (input.move_down))) {
+            diagonal_coefficient = 1.414f;
+        }
+
+        player.velocity.dx += PLAYER_ACCELERATION / diagonal_coefficient;
+        if (player.velocity.dx > 200.0f / diagonal_coefficient) { player.velocity.dx = 200.0f / diagonal_coefficient; }
     }
+
+    // Update dy
+    if ((input.move_up) && (input.move_down) ||  // If both OR neither SW keys are pressed STOP moving
+        (!input.move_up) && (!input.move_down)) {
+        if (player.velocity.dy == 0) {
+
+        } else if (player.velocity.dy > 0) {
+            player.velocity.dy -= PLAYER_DECELERATION;
+            if (player.velocity.dy < 0) { player.velocity.dy = 0; }
+        } else if (player.velocity.dy < 0) {
+            player.velocity.dy += PLAYER_DECELERATION;
+            if (player.velocity.dy > 0) { player.velocity.dy = 0; }
+        }
+    } else if (input.move_up) { // Only the W key is pressed
+        // If the player is moving diagonally reduce speed by sqrt(2)
+        if (((input.move_left) && (!input.move_right)) || ((!input.move_left) && (input.move_right))) {
+            diagonal_coefficient = 1.414f;
+        }
+
+        player.velocity.dy -= PLAYER_ACCELERATION / diagonal_coefficient;
+        if (player.velocity.dy < -200.0f / diagonal_coefficient) { player.velocity.dy = -200.0f / diagonal_coefficient; }
+    } else  { // Only the S key is pressed
+        // If the player is moving diagonally reduce speed by sqrt(2)
+        if (((input.move_left) && (!input.move_right)) || ((!input.move_left) && (input.move_right))) {
+            diagonal_coefficient = 1.414f;
+        }
+
+        player.velocity.dy += PLAYER_ACCELERATION / diagonal_coefficient;
+        if (player.velocity.dy > 200.0f / diagonal_coefficient) { player.velocity.dy = 200.0f / diagonal_coefficient; }
+    }
+
+    printf("dx [%.2f] dy [%.2f] diagonal [%.3f]\n", player.velocity.dx, player.velocity.dy, diagonal_coefficient);
 }

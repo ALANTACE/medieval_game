@@ -16,4 +16,7 @@ typedef struct {
 /* FUNCTIONS */
 void game_input(InputState *input);
 void game_update(InputState input, float delta_time);
+
+/* STATIC FUNCTIONS */
+static void update_player_velocity(InputState input);
 #endif

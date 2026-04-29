@@ -7,6 +7,8 @@
 
 /* DEFINES */
 #define MAX_NAME_LENGTH 32
+#define PLAYER_ACCELERATION 0.15f
+#define PLAYER_DECELERATION 0.1f
 
 /* STRUCTS */
 typedef struct {
@@ -24,8 +26,24 @@ typedef struct {
     float height;
 } Dimensions;
 
+typedef enum {
+    IDLE,
+    WALKING,
+    DASHING,
+    ATTACKING,
+    BLOCKING,
+    JUMPING
+} Status;
+
 typedef struct {
+    // Player info
     char name[MAX_NAME_LENGTH];
+
+    // Player stats
+    int health;
+    float damage;
+
+    // Player movement
     Position pos;
     Velocity velocity;
     Dimensions dimensions;
@@ -33,10 +51,7 @@ typedef struct {
     // Player module
     SDL_FRect rect;
     SDL_Texture *texture;
-
-    int health;
-    float speed; // Use speed to affect velocity
-    float direction; // Angle measured in degrees (360)
+    Status status;
 } Player;
 
 extern Player player;
