@@ -23,36 +23,44 @@ int main(int argc, char* argv[]) {
     const char name[MAX_NAME_LENGTH] = "Bob"; // TODO: implement a method of getting the player name
     player_init(name);
 
-    // Time variables
-    uint64_t last_time = SDL_GetTicksNS();
-    uint64_t current_time = 0;
-    float delta_time = 0;
-
     // Event handling variables
     SDL_Event event;
     InputState input = {false};
+
+    // Time variables
+    uint64_t current_time = 0;
+    uint64_t delta_time = 1;
+    uint64_t last_time = SDL_GetTicksNS();
+    uint64_t last_second = SDL_GetTicksNS();
+    uint64_t FPS = 0;
+
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /* MAIN LOOP */
     while (!input.quit) {
+        // Calculate FPS
+        FPS = 1000000000 / delta_time;
+        printf("FPS: %lu\n", FPS);
+        SDL_DelayPrecise(1000000000 / MAX_REFRESH_RATE);
+
         // Calculate delta time
         current_time = SDL_GetTicksNS();
-        delta_time = (float)(current_time - last_time) / 1000000000.0f;
+        delta_time = current_time - last_time;
         last_time = current_time;
 
         // Get input information
         game_input(&input);
 
         // Update the game
-        game_update(input, delta_time);
+        game_update(input, delta_time, FPS);
 
         // RENDER
         renderer_render(renderer, player.texture);
 
         // Caps the frame rate to MAX_REFRESH_RATE for lower CPU usage
-        SDL_DelayPrecise(SDL_NS_TO_MS(1000000000 / MAX_REFRESH_RATE));
+        // SDL_DelayPrecise(SDL_NS_TO_MS(1000000000 / MAX_REFRESH_RATE));
     }
 
     return 0;
