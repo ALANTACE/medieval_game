@@ -10,6 +10,7 @@ typedef struct {
     bool move_down;
     bool move_left;
     bool move_right;
+    bool run;
     bool dash;
     bool quit;
 } InputState;

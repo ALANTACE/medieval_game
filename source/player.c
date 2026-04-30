@@ -16,6 +16,7 @@ inline void player_init(const char name[MAX_NAME_LENGTH]) {
     // Player velocity
     player.velocity.dx = 0.0f;
     player.velocity.dy = 0.0f;
+    player.status = IDLE;
 
     // Player dimensions
     player.dimensions.width = 256.0f;

@@ -24,6 +24,7 @@ void game_input(InputState *input) {
     input->move_down = keyboard[SDL_SCANCODE_S];
     input->move_left = keyboard[SDL_SCANCODE_A];
     input->move_right = keyboard[SDL_SCANCODE_D];
+    input->run = keyboard[SDL_SCANCODE_LSHIFT];
 
     if ((dash_cooldown == 200000000) && (!keyboard[SDL_SCANCODE_SPACE])) {
 
@@ -53,10 +54,22 @@ void game_update(InputState *input, const uint64_t delta_time, const uint64_t FP
 static void update_player_velocity(const InputState input, const uint64_t delta_time)
 {
     float diagonal_coefficient = 1.0f;
-    float step = 400.0f;
+    float step = PLAYER_WALKING_SPEED;
 
+    // Check for dash/run before updating dx/dy
     if (input.dash) {
-        step *= PLAYER_DASH_SPEED_MULTIPLIER;
+        step = PLAYER_DASH_SPEED;
+        player.status = DASHING;
+    }
+    else if (input.run) {
+        step = PLAYER_RUNNING_SPEED;
+        player.status = RUNNING;
+    }
+    else if ((player.velocity.dx != 0) || (player.velocity.dy != 0)) {
+        player.status = WALKING;
+    }
+    else {
+        player.status = IDLE;
     }
 
     // Update dx
@@ -121,6 +134,7 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
 }
 
 static void update_cooldowns(InputState *input, const uint64_t delta_time) {
+    // Handle player dashing
     if (input->dash) {
         // If dash was inactive, activate the cooldown
         if (dash_cooldown == 0) { dash_cooldown = 200000000; }

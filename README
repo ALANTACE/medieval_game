@@ -13,5 +13,7 @@ TODO:
 	DONE: Implement player movement (Dash/Roll implementation)
 	-Implement collision
 
+	-Implement a method to greet the user and get the player name (terraria type shit)
+
 	-Implement terrain generation (perlin noise: git@github.com:amithm3/nPerlinNoise.git)
 	-Implement draw order

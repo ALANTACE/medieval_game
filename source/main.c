@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     if (!SDL_Init(SDL_INIT_VIDEO)) { return 1; }
 
     // Player
-    const char name[MAX_NAME_LENGTH] = "Bob"; // TODO: implement a method of getting the player name
+    const char name[MAX_NAME_LENGTH] = "Bob";
     player_init(name);
 
     // Event handling variables

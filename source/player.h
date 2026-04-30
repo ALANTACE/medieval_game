@@ -9,7 +9,9 @@
 #define MAX_NAME_LENGTH 32
 #define PLAYER_ACCELERATION 3000.0f
 #define PLAYER_DECELERATION 2000.0f
-#define PLAYER_DASH_SPEED_MULTIPLIER 5
+#define PLAYER_WALKING_SPEED 150.0f
+#define PLAYER_RUNNING_SPEED 300.0f
+#define PLAYER_DASH_SPEED 2000.0f
 
 /* STRUCTS */
 typedef struct {
@@ -30,6 +32,7 @@ typedef struct {
 typedef enum {
     IDLE,
     WALKING,
+    RUNNING,
     DASHING,
     ATTACKING,
     BLOCKING,
