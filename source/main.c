@@ -18,20 +18,19 @@ int main(int argc, char* argv[]) {
     SDL_Window *window = NULL;
     SDL_Renderer *renderer = NULL;
     if (renderer_init(&window, &renderer) != 0) { return 1; }
+    if (!SDL_Init(SDL_INIT_VIDEO)) { return 1; }
 
     // Player
     const char name[MAX_NAME_LENGTH] = "Bob"; // TODO: implement a method of getting the player name
     player_init(name);
 
     // Event handling variables
-    SDL_Event event;
     InputState input = {false};
 
     // Time variables
     uint64_t current_time = 0;
     uint64_t delta_time = 1;
     uint64_t last_time = SDL_GetTicksNS();
-    uint64_t last_second = SDL_GetTicksNS();
     uint64_t FPS = 0;
 
 
@@ -54,7 +53,7 @@ int main(int argc, char* argv[]) {
         game_input(&input);
 
         // Update the game
-        game_update(input, delta_time, FPS);
+        game_update(&input, delta_time, FPS);
 
         // RENDER
         renderer_render(renderer, player.texture);

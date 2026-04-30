@@ -1,19 +1,17 @@
 RULES:
-	Topdown 2d adventure (open world)
-	Movement -> WASD
-	Attacking/Aiming -> Mouse (Show equipment range (Maybe not idk))
-	There will be no jump, space -> dash. Moving to higher terrain levels will be done through passages strictly (for example a stairway)
-	Unlimited FPS option
-
+	-Topdown 2d adventure (open world)
+	-Movement -> WASD
+	-Attacking/Aiming -> Mouse (Show equipment range (Maybe not idk))
+	-There will be no jump, space -> dash. Moving to higher terrain levels will be done through passages strictly (for example a stairway)
+	-Unlimited FPS option
+	-Camera movement options: Semi locked (when player gets too far camera recenters smoothly) / GIGACHAD FUCK BOY MOUSE CONTROL ONLY
 
 
 TODO:
 	DONE: Implement delta time and FPS independence from game_update
 	DONE: Implement player acceleration and deceleration on movement
-	Implement player movement (Dash/Roll implementation)
-	Implement collision
+	DONE: Implement player movement (Dash/Roll implementation)
+	-Implement collision
 
-	Implement terrain generation (perlin noise: git@github.com:amithm3/nPerlinNoise.git)
-	Implement draw order
-
-	Settle on a camera movement (for now leave it as is (static))
+	-Implement terrain generation (perlin noise: git@github.com:amithm3/nPerlinNoise.git)
+	-Implement draw order

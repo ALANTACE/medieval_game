@@ -5,6 +5,10 @@
 
 #include <stdio.h>
 
+/* GLOBAL VARIABLES */
+uint64_t dash_cooldown = 0;
+
+/* FUNCTIONS */
 void game_input(InputState *input) {
     SDL_Event event;
 
@@ -20,11 +24,21 @@ void game_input(InputState *input) {
     input->move_down = keyboard[SDL_SCANCODE_S];
     input->move_left = keyboard[SDL_SCANCODE_A];
     input->move_right = keyboard[SDL_SCANCODE_D];
+
+    if ((dash_cooldown == 200000000) && (!keyboard[SDL_SCANCODE_SPACE])) {
+
+        dash_cooldown = 0;
+    } else if (dash_cooldown == 0) {
+        input->dash = keyboard[SDL_SCANCODE_SPACE];
+    }
 }
 
-void game_update(const InputState input, const uint64_t delta_time, const uint64_t FPS) {
+void game_update(InputState *input, const uint64_t delta_time, const uint64_t FPS) {
+    // Update cooldowns
+    update_cooldowns(input, delta_time);
+
     // Update player velocity
-    update_player_velocity(input, delta_time);
+    update_player_velocity(*input, delta_time);
 
     // Update player position
     player.pos.x += player.velocity.dx * ((float)delta_time / 1000000000.0f);
@@ -39,7 +53,11 @@ void game_update(const InputState input, const uint64_t delta_time, const uint64
 static void update_player_velocity(const InputState input, const uint64_t delta_time)
 {
     float diagonal_coefficient = 1.0f;
-    const float step = 400.0f;
+    float step = 400.0f;
+
+    if (input.dash) {
+        step *= PLAYER_DASH_SPEED_MULTIPLIER;
+    }
 
     // Update dx
     if ((input.move_left) && (input.move_right) ||  // If both OR neither AD keys are pressed STOP moving
@@ -100,6 +118,23 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
         player.velocity.dy += PLAYER_ACCELERATION * ((float)delta_time / 1000000000.0f) / diagonal_coefficient;
         if (player.velocity.dy > step / diagonal_coefficient) { player.velocity.dy = step / diagonal_coefficient; }
     }
+}
 
-    // printf("dx [%.2f] dy [%.2f] diagonal [%.3f]\n", player.velocity.dx, player.velocity.dy, diagonal_coefficient);
+static void update_cooldowns(InputState *input, const uint64_t delta_time) {
+    if (input->dash) {
+        // If dash was inactive, activate the cooldown
+        if (dash_cooldown == 0) { dash_cooldown = 200000000; }
+        dash_cooldown -= delta_time;
+
+        // If dash duration expires, deactivate the dash and set the cooldown to a ghost state
+        //
+        // I set dash_cooldown = 200000000, because it can never have that value except when the
+        // dash ends (and i set it manually). So when the user keeps space pressed, the player dashes
+        // only once and waits for the release of thet space bar. After the release the dash_cooldown
+        // is set to 0, and on press the cooldown starts again.
+        if ((int64_t)dash_cooldown <= 0) {
+            input->dash = false;
+            dash_cooldown = 200000000;
+        }
+    }
 }
