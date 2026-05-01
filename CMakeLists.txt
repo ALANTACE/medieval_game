@@ -32,6 +32,7 @@ add_executable(game
 # Include external header files
 target_include_directories(game PRIVATE
     ${CMAKE_SOURCE_DIR}/deps/uthash
+    ${CMAKE_SOURCE_DIR}/deps/perlin_noise
 )
 
 # Link SDL3 to the game

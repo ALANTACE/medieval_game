@@ -36,8 +36,8 @@ void refresh(SDL_Renderer *renderer, ChunkMap_t *map){
     SDL_RenderClear(renderer);
 
     // Add background/terrain chunks
-    for(int y = 0; y < 2; y++){
-        for(int x = 0; x < 2; x++){
+    for(int y = 0; y < 6; y++){
+        for(int x = 0; x < 6; x++){
             Position pos = {x,y};
             Chunk_t *chunk = chunk_get(renderer, map, pos);
 

@@ -1,9 +1,11 @@
 #include "terrain.h"
 
+#define STB_PERLIN_IMPLEMENTATION
+#include <stb_perlin.h>
 #include <uthash.h>
 #include <SDL3_image/SDL_image.h>
 
-static inline Tile_t get_tile(SDL_Renderer *renderer, Position pos) {
+static inline Tile_t get_tile(SDL_Renderer *renderer, Position pos, Position cpos) {
 
     Tile_t target;
     target.rect = (SDL_FRect){
@@ -12,14 +14,41 @@ static inline Tile_t get_tile(SDL_Renderer *renderer, Position pos) {
         TILE_SIZE, 
         TILE_SIZE
     };
-    // perlin noise function here:
-    target.texture = (pos.x >= pos.y) ? IMG_LoadTexture(renderer, "../../assets/images/heart.png")
-            : IMG_LoadTexture(renderer, "../../assets/images/frog.png");
+    target.texture = SDL_CreateTexture(
+        renderer, 
+        SDL_PIXELFORMAT_RGBA8888, 
+        SDL_TEXTUREACCESS_STATIC, 
+        TILE_SIZE, 
+        TILE_SIZE
+    );
+
+    float scale = 0.08f;
+    float noise = stb_perlin_noise3(
+        (cpos.x * CHUNK_SIZE + pos.x) * scale, 
+        (cpos.y * CHUNK_SIZE + pos.y) * scale, 
+        0.0f, 
+        0, 
+        0, 
+        0
+    );
+    float normalized = noise * 0.5f + 0.5f;
+    if(normalized < 0) normalized = 0;
+    if(normalized > 1) normalized = 1;
+    uint8_t gray = normalized * 255;
+
+    uint32_t color =
+        ((uint32_t)gray << 24) |
+        ((uint32_t)gray << 16) |
+        ((uint32_t)gray << 8)  |
+        255;
+
+    SDL_SetRenderDrawColor(renderer, gray, gray, gray, 255);
+    SDL_RenderFillRect(renderer, &target.rect);
+    // SDL_SetTextureScaleMode(target.texture, SDL_SCALEMODE_NEAREST);
 
     return target;
 }
 
-//for efficiency
 Chunk_t *chunk_load(SDL_Renderer *renderer, Position cpos) {
     SDL_Texture *texture = SDL_CreateTexture(
         renderer,
@@ -34,12 +63,10 @@ Chunk_t *chunk_load(SDL_Renderer *renderer, Position cpos) {
     // For every tile in the chunk
     for(int y = 0; y < CHUNK_SIZE; y++){
         for(int x = 0; x < CHUNK_SIZE; x++){ 
-            Position pos = {x,y};
+            Position pos = {x, y};
+            Tile_t tile = get_tile(renderer, pos, cpos);
 
-            // Get tile
-            Tile_t tile = get_tile(renderer, pos);
-
-            // Add it to the chunk texture
+            // Add tile to the chunk texture
             SDL_RenderTexture(renderer, tile.texture, NULL, &tile.rect);
         }
     }
