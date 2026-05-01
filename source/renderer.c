@@ -22,8 +22,8 @@ inline int renderer_init(SDL_Window **window, SDL_Renderer **renderer) {
     return 0;
 }
 
-inline void renderer_render(SDL_Renderer *renderer, SDL_Texture *texture) {
+inline void renderer_render(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect *rect) {
     SDL_RenderClear(renderer);
-    SDL_RenderTexture(renderer, player.texture, NULL, &player.rect);
+    SDL_RenderTexture(renderer, texture, NULL, rect);
     SDL_RenderPresent(renderer);
 }

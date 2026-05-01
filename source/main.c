@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
         game_update(&input, delta_time, FPS);
 
         // RENDER
-        renderer_render(renderer, player.texture);
+        renderer_render(renderer, player.texture, &player.rect);
     }
 
     return 0;

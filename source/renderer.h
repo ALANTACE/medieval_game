@@ -6,6 +6,6 @@
 
 /* FUNCTIONS */
 int renderer_init(SDL_Window **window, SDL_Renderer **renderer);
-void renderer_render(SDL_Renderer *renderer, SDL_Texture *texture);
+void renderer_render(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect *rect);
 
 #endif
