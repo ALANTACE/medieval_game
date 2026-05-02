@@ -6,6 +6,8 @@
 #include "main.h"
 #include "terrain.h"
 
+#include "camera.h"
+
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -23,6 +25,9 @@ int main(int argc, char* argv[]) {
     // Player
     const char name[MAX_NAME_LENGTH] = "Bob";
     player_init(name);
+
+    // Camera
+    // camera_init();
 
     // Terrain variables
     ChunkMap_t *map = SDL_malloc(sizeof(ChunkMap_t));
@@ -66,6 +71,9 @@ int main(int argc, char* argv[]) {
         refresh(map);
         // renderer_render(renderer, player.texture, &player.rect);
     }
+
+    chunk_map_destroy(map);
+    free(map);
 
     return 0;
 }

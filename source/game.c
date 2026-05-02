@@ -3,10 +3,13 @@
 #include "player.h"
 #include "game.h"
 
+#include "camera.h"
+
 #include <stdio.h>
 
 /* GLOBAL VARIABLES */
 uint64_t dash_cooldown = 0;
+extern Camera_t camera;
 
 /* FUNCTIONS */
 void game_input(InputState *input) {
@@ -26,6 +29,11 @@ void game_input(InputState *input) {
     input->move_right = keyboard[SDL_SCANCODE_D];
     input->run = keyboard[SDL_SCANCODE_LSHIFT];
 
+    input->camera_up    = keyboard[SDL_SCANCODE_UP];
+    input->camera_down  = keyboard[SDL_SCANCODE_DOWN];
+    input->camera_left  = keyboard[SDL_SCANCODE_LEFT];
+    input->camera_right = keyboard[SDL_SCANCODE_RIGHT];
+
     if ((dash_cooldown == 200000000) && (!keyboard[SDL_SCANCODE_SPACE])) {
 
         dash_cooldown = 0;
@@ -40,10 +48,15 @@ void game_update(InputState *input, const uint64_t delta_time, const uint64_t FP
 
     // Update player velocity
     update_player_velocity(*input, delta_time);
+    // Update camera
+    update_camera_position(*input, delta_time);
 
     // Update player position
     player.pos.x += player.velocity.dx * ((float)delta_time / 1000000000.0f);
     player.pos.y += player.velocity.dy * ((float)delta_time / 1000000000.0f);
+
+    camera.pos.x += camera.velocity.dx * ((float)delta_time / 1000000000.0f);
+    camera.pos.y += camera.velocity.dy * ((float)delta_time / 1000000000.0f);
 
     // Update player rectangle
     player.rect.x = player.pos.x;
@@ -51,6 +64,34 @@ void game_update(InputState *input, const uint64_t delta_time, const uint64_t FP
 }
 
 /* STATIC FUNCTIONS */
+
+// Naive update camera position function
+static void update_camera_position(const InputState input, const uint64_t delta_time){
+    float step = PLAYER_WALKING_SPEED;
+
+    // Update dx
+    if (input.camera_left == input.camera_right) {
+        camera.velocity.dx = 0;
+    } else if (input.camera_left) { // Only the A key is pressed
+        camera.velocity.dx -= PLAYER_ACCELERATION * ((float)delta_time / 1000000000.0f);
+        if (camera.velocity.dx < -step) { camera.velocity.dx = -step; }
+    } else if (input.camera_right) { // Only the D key is pressed
+        camera.velocity.dx += PLAYER_ACCELERATION * ((float)delta_time / 1000000000.0f);
+        if (camera.velocity.dx > step) { camera.velocity.dx = step; }
+    }
+
+    // Update dy
+    if (input.camera_down == input.camera_up) {
+        camera.velocity.dy = 0;
+    } else if (input.camera_up) { // Only the W key is pressed    
+        camera.velocity.dy -= PLAYER_ACCELERATION * ((float)delta_time / 1000000000.0f);
+        if (camera.velocity.dy < -step) { camera.velocity.dy = -step; }
+    } else if (input.camera_down) { // Only the S key is pressed    
+        camera.velocity.dy += PLAYER_ACCELERATION * ((float)delta_time / 1000000000.0f);
+        if (camera.velocity.dy > step) { camera.velocity.dy = step; }
+    }
+}
+
 static void update_player_velocity(const InputState input, const uint64_t delta_time)
 {
     float diagonal_coefficient = 1.0f;
@@ -73,8 +114,7 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
     }
 
     // Update dx
-    if ((input.move_left) && (input.move_right) ||  // If both OR neither AD keys are pressed STOP moving
-        (!input.move_left) && (!input.move_right)) {
+    if (input.move_left == input.move_right) {
         if (player.velocity.dx == 0) {
 
         } else if (player.velocity.dx > 0) {
@@ -92,7 +132,7 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
 
         player.velocity.dx -= PLAYER_ACCELERATION * ((float)delta_time / 1000000000.0f) / diagonal_coefficient;
         if (player.velocity.dx < (-step) / diagonal_coefficient) { player.velocity.dx = (-step) / diagonal_coefficient; }
-    } else  { // Only the D key is pressed
+    } else if (input.move_right) { // Only the D key is pressed
         // If the player is moving diagonally reduce speed by sqrt(2)
         if (((input.move_up) && (!input.move_down)) || ((!input.move_up) && (input.move_down))) {
             diagonal_coefficient = 1.414f;
@@ -103,8 +143,7 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
     }
 
     // Update dy
-    if ((input.move_up) && (input.move_down) ||  // If both OR neither SW keys are pressed STOP moving
-        (!input.move_up) && (!input.move_down)) {
+    if (input.move_up == input.move_down) {
         if (player.velocity.dy == 0) {
 
         } else if (player.velocity.dy > 0) {
@@ -122,7 +161,7 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
 
         player.velocity.dy -= PLAYER_ACCELERATION * ((float)delta_time / 1000000000.0f) / diagonal_coefficient;
         if (player.velocity.dy < (-step) / diagonal_coefficient) { player.velocity.dy = (-step) / diagonal_coefficient; }
-    } else  { // Only the S key is pressed
+    } else if (input.move_down) { // Only the S key is pressed
         // If the player is moving diagonally reduce speed by sqrt(2)
         if (((input.move_left) && (!input.move_right)) || ((!input.move_left) && (input.move_right))) {
             diagonal_coefficient = 1.414f;
