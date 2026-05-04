@@ -49,7 +49,7 @@ void refresh(ChunkMap_t *map){
     // Add background/terrain chunks
     Position pos;
     // Add chunk padding 
-    for(int y = 0; y < SDL_ceil(DEFAULT_WINDOW_HEIGHT/CHUNK_PIXELS)+1; y++){
+    for(int y = 0; y < SDL_ceil(DEFAULT_WINDOW_HEIGHT/CHUNK_PIXELS)+3; y++){
         for(int x = 0; x < SDL_ceil(DEFAULT_WINDOW_WIDTH/CHUNK_PIXELS)+1; x++){
             pos.x = base_x + x;
             pos.y = base_y + y;

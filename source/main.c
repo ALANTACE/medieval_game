@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
     player_init(name);
 
     // Camera
-    // camera_init();
+    camera_init();
 
     // Terrain variables
     ChunkMap_t *map = SDL_malloc(sizeof(ChunkMap_t));

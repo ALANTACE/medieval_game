@@ -14,7 +14,7 @@ extern SDL_Renderer *renderer;
 // tpos(tile absolute position)
 // cpos(chunk absolute position of the tile)
 // Output: Ready to render Tile_t
-static inline Tile_t get_tile(Position tpos, Position cpos) {
+static Tile_t get_tile(Position tpos, Position cpos) {
 
     Tile_t target;
     target.rect = (SDL_FRect){

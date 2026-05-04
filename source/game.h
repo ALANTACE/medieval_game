@@ -29,5 +29,5 @@ void game_update(InputState *input, uint64_t delta_time, uint64_t FPS);
 /* STATIC FUNCTIONS */
 static void update_player_velocity(InputState input, uint64_t delta_time);
 static void update_cooldowns(InputState *input, uint64_t delta_time);
-static void update_camera_position(const InputState input, const uint64_t delta_time);
+static void update_camera_position(void);
 #endif
