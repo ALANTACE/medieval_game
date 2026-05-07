@@ -12,6 +12,9 @@ TODO:
 	DONE: Implement player acceleration and deceleration on movement
 	DONE: Implement player movement (Dash/Roll implementation)
 	-Implement collision
+	-Make defines such as PLAYER_WALKING_SPEED more general... WALKING_SPEED
+	-Do clever bitwise operations (FAST ASF) to skip many if checks in the update_velocity functionS
+	-Make update functions plug and play to other entities except the player
 
 	-Implement a method to greet the user and get the player name (terraria type shit)
 
