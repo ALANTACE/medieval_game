@@ -13,37 +13,32 @@ uint64_t dash_cooldown = 0;
 extern Camera_t camera;
 
 /* FUNCTIONS */
-void game_input(InputState *input) {
+void game_input(InputState_t *input) {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_EVENT_QUIT) {
-            input->quit = true;
+            *input ^= QUIT;
         }
     }
 
     const bool *keyboard = SDL_GetKeyboardState(NULL);
 
-    input->move_up = keyboard[SDL_SCANCODE_W];
-    input->move_down = keyboard[SDL_SCANCODE_S];
-    input->move_left = keyboard[SDL_SCANCODE_A];
-    input->move_right = keyboard[SDL_SCANCODE_D];
-    input->run = keyboard[SDL_SCANCODE_LSHIFT];
+    *input = keyboard[SDL_SCANCODE_ESCAPE] ? *input|QUIT  : *input;
+    *input = keyboard[SDL_SCANCODE_W] ? *input|MOVE_UP    : *input&~MOVE_UP;
+    *input = keyboard[SDL_SCANCODE_S] ? *input|MOVE_DOWN  : *input&~MOVE_DOWN;
+    *input = keyboard[SDL_SCANCODE_A] ? *input|MOVE_LEFT  : *input&~MOVE_LEFT;
+    *input = keyboard[SDL_SCANCODE_D] ? *input|MOVE_RIGHT : *input&~MOVE_RIGHT;
+    *input = keyboard[SDL_SCANCODE_LSHIFT] ? *input|RUN   : *input&~RUN;
 
-    input->camera_up    = keyboard[SDL_SCANCODE_UP];
-    input->camera_down  = keyboard[SDL_SCANCODE_DOWN];
-    input->camera_left  = keyboard[SDL_SCANCODE_LEFT];
-    input->camera_right = keyboard[SDL_SCANCODE_RIGHT];
-
-    if ((dash_cooldown == 200000000) && (!keyboard[SDL_SCANCODE_SPACE])) {
-
+    if ((dash_cooldown == DASH_COOLDOWN) && (!keyboard[SDL_SCANCODE_SPACE])) {
         dash_cooldown = 0;
     } else if (dash_cooldown == 0) {
-        input->dash = keyboard[SDL_SCANCODE_SPACE];
+        *input = keyboard[SDL_SCANCODE_SPACE] ? *input|DASH : *input&~DASH;
     }
 }
 
-void game_update(InputState *input, const uint64_t delta_time, const uint64_t FPS) {
+void game_update(InputState_t *input, const uint64_t delta_time, const uint64_t FPS) {
     // Update cooldowns
     update_cooldowns(input, delta_time);
 
@@ -66,37 +61,44 @@ void game_update(InputState *input, const uint64_t delta_time, const uint64_t FP
 
 /* STATIC FUNCTIONS */
 
-// Linear approach of camera towards the player
+// Still trying to figure out a good implementation/rules
 static void update_camera_position(void){
     float dx = player.pos.x - camera.pos.x;
     float dy = player.pos.y - camera.pos.y;
     float d = SDL_sqrt(dx*dx+dy*dy);
+    float step;
+
 
     // snap to player position if they are very close
     if (d < 2) {
         camera.pos = (Position)player.pos;
         return;
+    } else if (d < 2*PLAYER_WALKING_SPEED) {
+        step = d/(10*PLAYER_WALKING_SPEED);
+    } else {
+        step = d/PLAYER_WALKING_SPEED;
     }
-
     // Currently there is no safety check for humongus 'd'
-
-    float step = d/PLAYER_WALKING_SPEED;
 
     camera.pos.x += step * dx;
     camera.pos.y += step * dy;
 }
 
-static void update_player_velocity(const InputState input, const uint64_t delta_time)
+/*
+Class, today we are going to learn why working with enums as input sucks
+*/
+static void update_player_velocity(const InputState_t input, const uint64_t delta_time)
 {
+
     float diagonal_coefficient = 1.0f;
     float step = PLAYER_WALKING_SPEED;
 
     // Check for dash/run before updating dx/dy
-    if (input.dash) {
+    if (input & DASH) {
         step = PLAYER_DASH_SPEED;
         player.status = DASHING;
     }
-    else if (input.run) {
+    else if (input & RUN) {
         step = PLAYER_RUNNING_SPEED;
         player.status = RUNNING;
     }
@@ -108,7 +110,7 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
     }
 
     // Update dx
-    if (input.move_left == input.move_right) {
+    if ((bool)(input & MOVE_LEFT) == (bool)(input & MOVE_RIGHT)) {
         if (player.velocity.dx == 0) {
 
         } else if (player.velocity.dx > 0) {
@@ -118,17 +120,17 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
             player.velocity.dx += PLAYER_DECELERATION * ((float)delta_time / 1000000000.0f);
             if (player.velocity.dx > 0) { player.velocity.dx = 0;}
         }
-    } else if (input.move_left) { // Only the A key is pressed
+    } else if (input & MOVE_LEFT) { // Only the A key is pressed
         // If the player is moving diagonally reduce speed by sqrt(2)
-        if (input.move_up ^ input.move_down) {
+        if ((bool)(input & MOVE_UP) ^ (bool)(input & MOVE_DOWN)) {
             diagonal_coefficient = 1.414f;
         }
 
         player.velocity.dx -= PLAYER_ACCELERATION * ((float)delta_time / 1000000000.0f) / diagonal_coefficient;
         if (player.velocity.dx < (-step) / diagonal_coefficient) { player.velocity.dx = (-step) / diagonal_coefficient; }
-    } else if (input.move_right) { // Only the D key is pressed
+    } else if (input & MOVE_RIGHT) { // Only the D key is pressed
         // If the player is moving diagonally reduce speed by sqrt(2)
-        if (input.move_up ^ input.move_down) {
+        if ((bool)(input & MOVE_UP) ^ (bool)(input & MOVE_DOWN)) {
             diagonal_coefficient = 1.414f;
         }
 
@@ -137,7 +139,7 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
     }
 
     // Update dy
-    if (input.move_up == input.move_down) {
+    if ((bool)(input & MOVE_UP) == (bool)(input & MOVE_DOWN)) {
         if (player.velocity.dy == 0) {
 
         } else if (player.velocity.dy > 0) {
@@ -147,17 +149,17 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
             player.velocity.dy += PLAYER_DECELERATION * ((float)delta_time / 1000000000.0f);
             if (player.velocity.dy > 0) { player.velocity.dy = 0; }
         }
-    } else if (input.move_up) { // Only the W key is pressed
+    } else if (input & MOVE_UP) { // Only the W key is pressed
         // If the player is moving diagonally reduce speed by sqrt(2)
-        if (input.move_left ^ input.move_right) {
+        if ((bool)(input & MOVE_LEFT) ^ (bool)(input & MOVE_RIGHT)) {
             diagonal_coefficient = 1.414f;
         }
 
         player.velocity.dy -= PLAYER_ACCELERATION * ((float)delta_time / 1000000000.0f) / diagonal_coefficient;
         if (player.velocity.dy < (-step) / diagonal_coefficient) { player.velocity.dy = (-step) / diagonal_coefficient; }
-    } else if (input.move_down) { // Only the S key is pressed
+    } else if (input & MOVE_DOWN) { // Only the S key is pressed
         // If the player is moving diagonally reduce speed by sqrt(2)
-        if (input.move_left ^ input.move_right) {
+        if ((bool)(input & MOVE_LEFT) ^ (bool)(input & MOVE_RIGHT)) {
             diagonal_coefficient = 1.414f;
         }
 
@@ -166,9 +168,9 @@ static void update_player_velocity(const InputState input, const uint64_t delta_
     }
 }
 
-static void update_cooldowns(InputState *input, const uint64_t delta_time) {
+static void update_cooldowns(InputState_t *input, const uint64_t delta_time) {
     // Handle player dashing
-    if (input->dash) {
+    if (*input & DASH) {
         // If dash was inactive, activate the cooldown
         if (dash_cooldown == 0) { dash_cooldown = 200000000; }
         dash_cooldown -= delta_time;
@@ -180,7 +182,7 @@ static void update_cooldowns(InputState *input, const uint64_t delta_time) {
         // only once and waits for the release of thet space bar. After the release the dash_cooldown
         // is set to 0, and on press the cooldown starts again.
         if ((int64_t)dash_cooldown <= 0) {
-            input->dash = false;
+            *input &= ~DASH;
             dash_cooldown = 200000000;
         }
     }

@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     map->chunks = NULL;
 
     // Event handling variables
-    InputState input = {false};
+    InputState_t input = 0;
 
     // Time variables
     uint64_t current_time = 0;
@@ -47,7 +47,8 @@ int main(int argc, char* argv[]) {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /* MAIN LOOP */
-    while (!input.quit) {
+    while (!(input & QUIT)) {
+        
         // Calculate FPS
         FPS = 1000000000 / delta_time;
         printf("FPS: %lu\n", FPS);
@@ -64,12 +65,8 @@ int main(int argc, char* argv[]) {
         // Update the game
         game_update(&input, delta_time, FPS);
 
-        // Load chunks? Not yet ig
-        // refresh_chunks()
-
         // RENDER
         refresh(map);
-        // renderer_render(renderer, player.texture, &player.rect);
     }
 
     chunk_map_destroy(map);
