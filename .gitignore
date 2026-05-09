@@ -12,3 +12,4 @@ build/
 
 # IDEs
 .idea/
+.vscode/
